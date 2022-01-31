@@ -1,0 +1,174 @@
+---
+title: "Modèle linéaire: test d'hypothèse et interprétation"
+output:
+  html_notebook: default
+  word_document: default
+---
+
+
+# Teste d'hypothèse: Une intuition pour commencer
+
+## Les faiseurs de pluies
+
+* Niveau naturel de pluies à **Beauce** par an en mm: 
+
+$$\text{niveau Naturel (mm)}\sim\mathcal{N}(m=600,\sigma²=100)$$
+
+* Des entrepreneurs surnommmé faiseurs de pluies prétendaient augmenter le niveau de pluies anuel de 50mm ceci par **insémination des nuages au moyen d'iodure d'argent**.
+
+* Periode d'essaie: *de 1951 à 1959*.
+
+```{r,echo=FALSE; message=FALSE}
+library(dplyr)
+library(kableExtra)
+
+donnee=data.frame(Annee=seq(1951,1959,1),
+                  mm=c(510,614,780,512,501,534,603,788,650))
+donnee %>% kbl() %>% kable_classic_2(full_width=F)
+```
+
+
+Deux hypothèses:
+
+
+$$H_0\text{: m=600 mm (hypothèse nulle)}\\\\H_1\text{: m=650 mm (hypothèse alternative)}$$
+Les agricultueurs tenaient pour l'hypothèse H0 et pour que l'expérience puisse les convaincre il faut que les faits observés.
+
+* Les évènements rares ne sauraient se produire sans remettre en cause les bien-fondés de l'hypothèse de départ H0.
+
+Qu'est ce qu'un évènement rare dans notre exemple? Comment pourrait-il remettre en cause les hypothèses de départs.
+
+
+```{r}
+
+x=rnorm(10000,600,100/3)
+
+plot(density(x))
+
+x <- seq(450, 750, length=1000)
+hx <- dnorm(x,600,100/3)
+
+
+y <- seq(qnorm(.95,600,100/3), 750, length = 100)
+
+plot(x, hx, type="l", lty=2, xlab="x value",
+     ylab="Density", main="Densité")
+{
+  plot(x, hx, type="l", lty=2, xlab="x value",
+       ylab="Density", main="Densité")
+  polygon(c(y, rev(y)),c(dnorm(y,600,100/3), rep(0, length(y))), col = "salmon")}
+```
+
+
+
+Si la moyenne est trop grande, c'est à dire supérieure à k qui n'a que **5 chance sur 100** d'être dépassé, on optera  pour H1. Si  la moyenne est inférieur à k, faute de preuves suffisantes
+
+
+$$P(\bar{X}>k)=0.05 $$
+
+$$P(\frac{\bar{X}-m=600}{\sigma=100/3}>\frac{k-m}{\sigma})=0.05 $$
+$$P(t_\alpha>\frac{k-m}{\sigma})=0.05 $$
+
+
+$$k=600+\frac{100}{3}\times 1.64 (\text{ }k=\bar{X}+1.64=655\times\frac{\sigma}{\sqrt{n}})$$
+
+
+
+$$\text{Region critique}=set(\bar{X},\bar{X}>k=655)$$
+
+On peut aussi determiner le niveau de significativité (p-value): la probabilité de dépassement de la valeur observée de la variable de décision sous H0. 
+
+
+$$\text{p_value}=P(\bar{X}>610.2/H_0)=0.38 $$
+$$Y=X\beta+\epsilon \text{ , }\epsilon \sim \mathcal{N}(0,\sigma²I_n)$$
+
+$$X^T(Y-X\beta)=0 =>\hat{\beta}=(X^TX)^\text{-1}X^TY$$
+$$Y=X\beta+\epsilon \text{ , }\epsilon \sim \mathcal{N}(0,\sigma²I_n)$$
+
+
+$$Y_i=\beta_0+\beta_1x_1i+\beta_2ix_2+...+\beta_jx_ji+...\beta_Jix_J+\epsilon_i, i=1,...,n$$
+
+Pour tester la significativté d'un coefficient, les hypothèses suivantes:
+  
+$$H_0: \beta_i=0 \text{ (hypothèse nulle)}\\\\H_1: \beta_i\ne0 \text{ (hypothèse alternative)}$$
+
+Supposer que l'hypothèse nulle est vraie:
+
+
+$$\beta_i=0 $$
+ $$P(\beta_i>k)=0.05 $$
+ $$P(\frac{\beta_i}{\hat{S}(\hat{\beta)}}>\frac{k}{\hat{S}(\hat{\beta)}})=0.05 $$
+  $$P(t_{n-k}>\frac{k}{\hat{S}(\hat{\beta)}})=0.05 $$
+  
+cherchons la p-value
+
+$$P(\beta_i>\hat{\beta_i}/H_0)$$
+$$P(\frac{\beta_i}{\hat{S}}>\frac{\hat{\beta_i}}{\hat{S}}/H_0)$$
+$$P(t_{n-k}>\frac{\hat{\beta_i}}{\hat{S}}/H_0)$$
+
+
+ 
+  $$\frac{\hat{\beta}_i-0}{\hat{S}(\hat{\beta}_i)}\sim t(n-k)$$
+
+
+$$\frac{\hat{\beta}_i-\beta_{0i}}{\hat{S}(\hat{\beta}_i)}\sim t(n-k)$$
+
+
+
+```{r}
+library(MASS)
+library(broom)
+library(kableExtra)
+library(ggplot2)
+
+
+str(Boston) #afficher la structure des données
+summary(Boston)
+
+View(Boston)
+
+ggplot(Boston,aes(y=age))+geom_boxplot()
+
+pairs(~medv+ptratio+black+lstat+age+crim,data = Boston)
+
+ggplot(Boston,aes(x=lstat,y=medv))+geom_point()+geom_smooth(method = "lm")
+
+#Modele lineaire
+
+Mon_modele=lm(formula = medv~lstat,data = Boston)
+summary(Mon_modele)
+
+tidy(Mon_modele) %>% kbl() %>% kable_classic_2(full_width=F)
+glance(Mon_modele) %>% kbl() %>% kable_classic_2(full_width=F)
+
+
+```
+
+$$medv_i=\beta_0+\beta_1\times lstat+\epsilon $$
+$$medv_i=34.55-0.95\times lstat_i+\epsilon $$
+
+$$medv_i=\beta_0+\beta_1\times lstat_i+\epsilon $$
+
+$$\Delta(medv)=\hat{\beta_1}\Delta(lstat)$$
+Si la variable lstat varie d'une unité; medv varie de b1 unité
+log log
+
+$$log(medv_i)=\beta_0+\beta_1\times log(lstat_i)+\epsilon $$
+SI lstat varie d' 1%, medv varie de b1%
+
+
+$$medv_i=\beta_0+\beta_1\times log(lstat_i)+\epsilon $$
+
+Si la variable lstat varie de 1%, medv varie de b1
+
+
+
+
+
+
+
+
+
+
+
+
